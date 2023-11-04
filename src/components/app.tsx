@@ -171,6 +171,22 @@ const App = () => {
   const [leagues] = useLocalStorage<PersistedLeague[]>("leagues", []);
   const espnLeagues = leagues.filter((league) => league.type === "espn");
 
+  if (!leagues.length) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center p-4">
+        <H1 className="text-center">Fantasy scores</H1>
+        <div className="mt-8 flex flex-col items-center justify-center gap-8">
+          <div>
+            Welcome to the easiest way to track your scores from all your
+            fantasy leagues at the same time. Connect a league below to get
+            started.
+          </div>
+          <ConnectLeagueModal className="w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4">
       <H1 className="text-center">Fantasy scores</H1>
@@ -204,12 +220,12 @@ const App = () => {
   );
 };
 
-const ConnectLeagueModal = () => {
+const ConnectLeagueModal = ({ className }: { className?: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Dialog onOpenChange={() => setIsOpen((open) => !open)} open={isOpen}>
       <DialogTrigger asChild>
-        <Button>Connect a league</Button>
+        <Button className={className}>Connect a league</Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-scroll">
         <DialogHeader>
