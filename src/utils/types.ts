@@ -9,4 +9,14 @@ export type PersistedEspnLeague = {
   };
 };
 
-export type PersistedLeague = PersistedEspnLeague;
+export type PersistedSleeperLeague = {
+  type: "sleeper";
+  leagueInfo: {
+    id: string;
+    ownerUserId: string;
+    // ownerUsername: string;
+    // ownerDisplayName: string;
+  };
+};
+
+export type PersistedLeague = PersistedEspnLeague | PersistedSleeperLeague;

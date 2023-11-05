@@ -1,8 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { Client } from "espn-fantasy-football-api/node";
-import { z } from "zod";
+import { ZodError, z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+
+// TODO(abdul): use zod to validate the responses of all these responses
+const SleeperUserSchema = z.object({
+  // username: z.string(),
+  user_id: z.string(),
+});
 
 const seasonId = 2023;
 
@@ -100,7 +106,6 @@ const getLeagueInfo = async ({
   leagueId: string;
   cookies?: { espnS2: string; SWID: string };
 }) => {
-  console.log({ leagueId, cookies });
   const espnClient = new Client({ leagueId });
 
   if (cookies) espnClient.setCookies(cookies);
@@ -118,6 +123,119 @@ const getLeagueInfo = async ({
       message: isPrivateLeague
         ? "It looks like you're in a private league. Add the necessary fields and try again."
         : "An unexpected error occurred, please try again later.",
+      cause: e,
+    });
+  }
+};
+
+const getLeaguesForUser = async (username: string) => {
+  try {
+    let user = await fetch(`https://api.sleeper.app/v1/user/${username}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    user = await user.json();
+    SleeperUserSchema.parse(user);
+    let leagues = await fetch(
+      `https://api.sleeper.app/v1/user/${user.user_id}/leagues/nfl/${seasonId}`,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    leagues = await leagues.json();
+
+    return {
+      userId: user.user_id,
+      leagues: leagues.map((league) => ({
+        name: league.name,
+        leagueId: league.league_id,
+      })),
+    };
+  } catch (e) {
+    console.error(e);
+
+    if (e instanceof ZodError) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred, please try again later.",
+        cause: e,
+      });
+    }
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      message:
+        e.message || "An unexpected error occurred, please try again later.",
+      cause: e,
+    });
+  }
+};
+const getSleeperMatchupData = async ({
+  leagueId,
+  ownerId,
+  week,
+}: {
+  leagueId: string;
+  ownerId: string;
+  week: string;
+}) => {
+  const fetchLeagueData = () =>
+    fetch(`https://api.sleeper.app/v1/league/${leagueId}`).then((res) =>
+      res.json(),
+    );
+  const fetchRosterData = () =>
+    fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`).then((res) =>
+      res.json(),
+    );
+  const fetchMatchupData = () =>
+    fetch(
+      `https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`,
+    ).then((res) => res.json());
+
+  const fetchUsersData = () =>
+    fetch(`https://api.sleeper.app/v1/league/${leagueId}/users`).then((res) =>
+      res.json(),
+    );
+
+  try {
+    const [leagueData, rosterData, matchupData, usersData] = await Promise.all([
+      fetchLeagueData(),
+      fetchRosterData(),
+      fetchMatchupData(),
+      fetchUsersData(),
+    ]);
+    // every roster (rosterData) has an owner_id, use that to get roster_id
+    const rosterId = rosterData.find((roster) => roster.owner_id === ownerId)
+      ?.roster_id;
+    // matchup data has a separate record for each roster, using team's roster_id you can
+    // get the matcup_id for the matchup and use that to get the 2 scores for the matchup
+    const myScoreData = matchupData.find(
+      (matchup) => matchup?.roster_id === rosterId,
+    );
+
+    const opponentScoreData = matchupData.find(
+      (matchup) =>
+        matchup?.matchup_id === myScoreData?.matchup_id &&
+        matchup?.roster_id !== rosterId,
+    );
+
+    const opponentUserId = rosterData.find(
+      (roster) => roster.roster_id === opponentScoreData?.roster_id,
+    )?.owner_id;
+
+    const me = usersData.find((user) => user.user_id === ownerId);
+    const opponent = usersData.find((user) => user.user_id === opponentUserId);
+
+    return {
+      leagueName: leagueData.name,
+      score: myScoreData?.points,
+      opponentScore: opponentScoreData?.points,
+      teamName: me?.metadata.team_name ?? me?.display_name,
+      opponentTeamName: opponent?.metadata.team_name ?? opponent?.display_name,
+    };
+  } catch (e) {
+    console.error(e);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      message:
+        e.message || "An unexpected error occurred, please try again later.",
       cause: e,
     });
   }
@@ -153,5 +271,23 @@ export const mainRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       return await getLeagueInfo({ ...input });
+    }),
+
+  getSleeperLeaguesForUser: publicProcedure
+    .input(z.string())
+    .mutation(async ({ input: username }) => {
+      return await getLeaguesForUser(username);
+    }),
+
+  getSleeperMatchupData: publicProcedure
+    .input(
+      z.object({ leagueId: z.string(), ownerId: z.string(), week: z.string() }),
+    )
+    .query(async ({ input }) => {
+      return await getSleeperMatchupData({
+        leagueId: input.leagueId,
+        ownerId: input.ownerId,
+        week: input.week,
+      });
     }),
 });
