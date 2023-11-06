@@ -6,6 +6,7 @@ import { EspnLeagues } from "@/components/espn-leagues";
 import { SleeperConnectionTab } from "@/components/sleeper-connection-tab";
 import { SleeperLeagues } from "@/components/sleeper-leagues";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -146,12 +147,13 @@ const ConnectLeagueModal = ({ className }: { className?: string }) => {
             <DialogTitle>Connect a league</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="espn" className="max-w-lg">
-            <TabsList className="mb-2 grid w-full grid-cols-3">
+            <TabsList className="relative mb-2 grid w-full grid-cols-3">
               <TabsTrigger value="espn">Espn</TabsTrigger>
               <TabsTrigger value="sleeper">Sleeper</TabsTrigger>
               <TabsTrigger disabled value="nfl">
                 Nfl.com
               </TabsTrigger>
+              <Badge className="absolute right-[-16px] top-[-4px]">Soon</Badge>
             </TabsList>
             <TabsContent value="espn">
               <EspnConnectionTab onClose={() => setIsOpen(false)} />
