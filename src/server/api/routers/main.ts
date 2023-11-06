@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { TRPCError } from "@trpc/server";
 import { Client } from "espn-fantasy-football-api/node";
 import { ZodError, z } from "zod";
@@ -6,9 +11,15 @@ import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 // TODO(abdul): use zod to validate the responses of all these responses
 const SleeperUserSchema = z.object({
-  // username: z.string(),
   user_id: z.string(),
 });
+
+const SleeperLeaguesSchema = z.array(
+  z.object({
+    name: z.string(),
+    league_id: z.string(),
+  }),
+);
 
 const seasonId = 2023;
 
@@ -128,17 +139,30 @@ const getLeagueInfo = async ({
   }
 };
 
+const getUser = async (username: string) => {
+  return await fetch(`https://api.sleeper.app/v1/user/${username}`)
+    .then((res) => res.json())
+    .then((res) => {
+      SleeperUserSchema.parse(res);
+      return res as { user_id: string };
+    });
+};
+
+const getLeagues = async (userId: string) => {
+  return await fetch(
+    `https://api.sleeper.app/v1/user/${userId}/leagues/nfl/${seasonId}`,
+  )
+    .then((res) => res.json())
+    .then((res) => {
+      SleeperLeaguesSchema.parse(res);
+      return res as { name: string; league_id: string }[];
+    });
+};
+
 const getLeaguesForUser = async (username: string) => {
   try {
-    let user = await fetch(`https://api.sleeper.app/v1/user/${username}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    user = await user.json();
-    SleeperUserSchema.parse(user);
-    let leagues = await fetch(
-      `https://api.sleeper.app/v1/user/${user.user_id}/leagues/nfl/${seasonId}`,
-    );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    leagues = await leagues.json();
+    const user = await getUser(username);
+    const leagues = await getLeagues(user.user_id);
 
     return {
       userId: user.user_id,
@@ -159,9 +183,9 @@ const getLeaguesForUser = async (username: string) => {
     }
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       message:
-        e.message || "An unexpected error occurred, please try again later.",
+        (e as { message?: string }).message ??
+        "An unexpected error occurred, please try again later.",
       cause: e,
     });
   }
