@@ -1,4 +1,4 @@
-import { Scorecard } from "@/components/scorecard";
+import { Scorecard, ScorecardSkeleton } from "@/components/scorecard";
 import { H2 } from "@/components/ui/typography";
 import { api } from "@/utils/api";
 import type { PersistedSleeperLeague as SleeperLeagueConfig } from "@/utils/types";
@@ -17,7 +17,7 @@ const ScorecardContainer = ({
     week,
   });
 
-  if (!data) return <div>loading...</div>;
+  if (!data) return <ScorecardSkeleton />;
 
   return <Scorecard {...data} />;
 };
@@ -32,7 +32,7 @@ export const SleeperLeagues = ({
   return (
     <div className="flex flex-col gap-4">
       <H2>Sleeper</H2>
-      <div className="flex flex-wrap gap-3" suppressHydrationWarning>
+      <div className="flex flex-wrap gap-3">
         {leagues.map((league) => (
           <ScorecardContainer
             league={league}

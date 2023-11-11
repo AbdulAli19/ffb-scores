@@ -1,4 +1,4 @@
-import { Scorecard } from "@/components/scorecard";
+import { Scorecard, ScorecardSkeleton } from "@/components/scorecard";
 import { H2 } from "@/components/ui/typography";
 import { api } from "@/utils/api";
 import type { PersistedEspnLeague as EspnLeagueConfig } from "@/utils/types";
@@ -18,7 +18,7 @@ const EspnScorecardContainer = ({
     week,
   });
 
-  if (!data) return <div>loading...</div>;
+  if (!data) return <ScorecardSkeleton />;
 
   const { score, opponentScore } = data.matchup;
   const { team, opponentTeam } = data.teams;

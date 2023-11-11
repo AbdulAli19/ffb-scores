@@ -25,7 +25,6 @@ const seasonId = 2023;
 
 type EspnLeague = {
   name: string;
-  isPublic: boolean;
 };
 
 type EspnTeam = {
