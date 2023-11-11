@@ -58,7 +58,6 @@ export const EspnConnectionTab = ({ onClose }: { onClose: VoidFunction }) => {
                 teamId,
                 cookies,
                 name: data.name,
-                isPublic: data.isPublic,
               },
               type: "espn",
             },

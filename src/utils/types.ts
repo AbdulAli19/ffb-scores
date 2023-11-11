@@ -5,7 +5,6 @@ export type PersistedEspnLeague = {
     teamId: string;
     cookies?: { espnS2: string; SWID: string };
     name: string;
-    isPublic: boolean;
   };
 };
 
@@ -14,8 +13,6 @@ export type PersistedSleeperLeague = {
   leagueInfo: {
     id: string;
     ownerUserId: string;
-    // ownerUsername: string;
-    // ownerDisplayName: string;
   };
 };
 
