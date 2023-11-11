@@ -142,11 +142,11 @@ const ConnectLeagueModal = ({ className }: { className?: string }) => {
         <Button className={className}>Connect a league</Button>
       </DialogTrigger>
       {isOpen && (
-        <DialogContent className="max-h-screen overflow-y-scroll">
+        <DialogContent className="max-h-screen overflow-y-scroll lg:min-w-[640px]">
           <DialogHeader>
             <DialogTitle>Connect a league</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="espn" className="max-w-lg">
+          <Tabs defaultValue="espn">
             <TabsList className="relative mb-2 grid w-full grid-cols-3">
               <TabsTrigger value="espn">Espn</TabsTrigger>
               <TabsTrigger value="sleeper">Sleeper</TabsTrigger>
