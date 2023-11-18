@@ -28,49 +28,15 @@ import type {
   PersistedLeague,
   PersistedSleeperLeague,
 } from "@/utils/types";
-
-// TODO: write tests for this function
-// function getCurrentNFLWeek() {
-//   const currentDate = Date.now();
-//   // Define the start date of the NFL season and the length of the season in weeks
-//   const seasonStartDate = new Date("2023-09-08"); // Update with the actual start date
-//   const seasonLengthInWeeks = 18; // Update with the actual season length
-
-//   // Calculate the time difference in days between the current date and the start of the season
-//   const timeDifference = currentDate - seasonStartDate.getTime();
-//   const daysDifference = timeDifference / (1000 * 3600 * 24);
-
-//   // Calculate the current NFL week
-//   let currentWeek = Math.floor(daysDifference / 7);
-
-//   // Check if it's Tuesday or a later day of the week
-//   const currentDayOfWeek = new Date(currentDate).getDay();
-//   if (currentDayOfWeek >= 2) {
-//     currentWeek++;
-//   }
-
-//   // If the season is over, set it to the last week of the season
-//   if (currentWeek > seasonLengthInWeeks) {
-//     currentWeek = seasonLengthInWeeks;
-//   }
-
-//   // If it's the offseason, return the last week of the previous season
-//   if (currentWeek < 1) {
-//     return seasonLengthInWeeks;
-//   }
-
-//   // Return the current week
-//   return currentWeek;
-// }
+import { getCurrentNFLWeek } from "@/lib/utils";
 
 // TODO: make week a number + stringify in api call only
 
 const WEEKS_IN_NFL_SEASON = 18;
 
 const App = () => {
-  // TODO(abdul): make this getCurrentNFLWeek fn work
-  // const [week, setWeek] = useState(String(getCurrentNFLWeek()));
-  const [week, setWeek] = useState("1");
+  const currentWeek = getCurrentNFLWeek(new Date());
+  const [week, setWeek] = useState(String(currentWeek));
   const [leagues] = useLocalStorage<PersistedLeague[]>("leagues", []);
   const espnLeagues = leagues.filter((league) => league.type === "espn");
   const sleeperLeagues = leagues.filter((league) => league.type === "sleeper");
@@ -109,7 +75,7 @@ const App = () => {
             ).map((week) => (
               <SelectItem key={week} value={String(week)}>
                 Week {week}
-                {/* {week === getCurrentNFLWeek() ? " (current)" : ""} */}
+                {week === currentWeek ? " (current)" : ""}
               </SelectItem>
             ))}
           </SelectContent>
