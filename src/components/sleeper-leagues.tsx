@@ -11,11 +11,18 @@ const ScorecardContainer = ({
   week: string;
 }) => {
   const { id: leagueId, ownerUserId: ownerId } = league.leagueInfo;
-  const { data } = api.main.getSleeperMatchupData.useQuery({
-    leagueId,
-    ownerId,
-    week,
-  });
+  const { data, isRefetching } = api.main.getSleeperMatchupData.useQuery(
+    {
+      leagueId,
+      ownerId,
+      week,
+    },
+    // {
+    //   refetchInterval: 6000,
+    // },
+  );
+
+  // isRefetching is true when the query is being refetched
 
   if (!data) return <ScorecardSkeleton />;
 
