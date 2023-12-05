@@ -3,12 +3,15 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type ScorecardProps = {
+import { cn } from "@/lib/utils";
+
+export type ScorecardProps = {
   leagueName: string;
   score: number;
   opponentScore: number;
   teamName: string;
   opponentTeamName: string;
+  className?: string;
 };
 
 export const Scorecard = ({
@@ -17,9 +20,10 @@ export const Scorecard = ({
   opponentScore,
   teamName,
   opponentTeamName,
+  className,
 }: ScorecardProps) => {
   return (
-    <Card className="min-w-[300px] max-w-lg flex-1">
+    <Card className={cn("min-w-[300px] max-w-lg flex-1", className)}>
       <CardHeader className="text-center">
         <CardTitle className="text-base">{leagueName}</CardTitle>
       </CardHeader>

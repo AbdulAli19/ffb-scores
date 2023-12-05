@@ -1,4 +1,5 @@
-import { Scorecard, ScorecardSkeleton } from "@/components/scorecard";
+import { ScorecardSkeleton } from "@/components/scorecard";
+import { ScorecardWithModal } from "@/components/scorecard-with-sheet";
 import { H2 } from "@/components/ui/typography";
 import { api } from "@/utils/api";
 import type { PersistedSleeperLeague as SleeperLeagueConfig } from "@/utils/types";
@@ -26,7 +27,9 @@ const ScorecardContainer = ({
 
   if (!data) return <ScorecardSkeleton />;
 
-  return <Scorecard {...data} />;
+  const props = getProps(data);
+
+  return <ScorecardWithModal {...data} />;
 };
 
 export const SleeperLeagues = ({

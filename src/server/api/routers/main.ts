@@ -8,6 +8,7 @@ import { Client } from "espn-fantasy-football-api/node";
 import { ZodError, z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { prisma } from "@/server/db";
 
 // TODO(abdul): use zod to validate the responses of all these responses
 const SleeperUserSchema = z.object({
@@ -57,13 +58,13 @@ const getMatchupData = async ({
 
   const matchupPeriodId = parseInt(week);
   const scoringPeriodId = parseInt(week);
-  const boxscore = (await espnClient.getBoxscoreForWeek({
+  const boxscores = (await espnClient.getBoxscoreForWeek({
     seasonId,
     matchupPeriodId,
     scoringPeriodId,
   })) as EspnBoxscore[];
 
-  const matchup = boxscore.find(
+  const matchup = boxscores.find(
     (matchup) => matchup.homeTeamId === teamId || matchup.awayTeamId === teamId,
   );
 
@@ -84,20 +85,60 @@ const getMatchupData = async ({
     throw new Error(`no matchup found for teamId: ${teamId}. matchup`);
   }
 
-  const { homeScore, awayScore, homeTeamId, awayTeamId } = matchup;
+  const {
+    homeScore,
+    awayScore,
+    homeTeamId,
+    awayTeamId,
+    homeRoster,
+    awayRoster,
+    homeProjectedScore,
+    awayProjectedScore,
+  } = matchup;
 
   const homeTeam = teams.find((team) => team.id === homeTeamId);
   const awayTeam = teams.find((team) => team.id === awayTeamId);
 
   const isHome = teamId === homeTeamId;
-  const [score, opponentScore, team, opponentTeam] = isHome
-    ? [homeScore, awayScore, homeTeam, awayTeam]
-    : [awayScore, homeScore, awayTeam, homeTeam];
+  const [
+    score,
+    opponentScore,
+    team,
+    opponentTeam,
+    roster,
+    opponentRoster,
+    projectedScore,
+    opponentProjectedScore,
+  ] = isHome
+    ? [
+        homeScore,
+        awayScore,
+        homeTeam,
+        awayTeam,
+        homeRoster,
+        awayRoster,
+        homeProjectedScore,
+        awayProjectedScore,
+      ]
+    : [
+        awayScore,
+        homeScore,
+        awayTeam,
+        homeTeam,
+        awayRoster,
+        homeRoster,
+        awayProjectedScore,
+        homeProjectedScore,
+      ];
 
   return {
     matchup: {
       score,
       opponentScore,
+      roster,
+      opponentRoster,
+      projectedScore,
+      opponentProjectedScore,
     },
     teams: {
       team,
@@ -189,6 +230,32 @@ const getLeaguesForUser = async (username: string) => {
     });
   }
 };
+
+const fetchAndFormatPlayerData = async (
+  playerPoints: Record<string, number>,
+  starters: string[],
+) => {
+  const playerData = await prisma.sleeper_players.findMany({
+    where: {
+      id: { in: starters },
+    },
+    select: {
+      id: true,
+      first_name: true,
+      last_name: true,
+      position: true,
+      team: true,
+    },
+  });
+
+  const starterPoints = starters.map((playerId) => ({
+    ...playerData.find((player) => player.id === playerId),
+    points: playerPoints[playerId],
+  }));
+
+  return starterPoints;
+};
+
 const getSleeperMatchupData = async ({
   leagueId,
   ownerId,
@@ -245,12 +312,28 @@ const getSleeperMatchupData = async ({
     const me = usersData.find((user) => user.user_id === ownerId);
     const opponent = usersData.find((user) => user.user_id === opponentUserId);
 
+    const scores = await fetchAndFormatPlayerData(
+      (myScoreData?.players_points ?? {}) as Record<string, number>,
+      (myScoreData?.starters ?? []) as string[],
+    );
+
+    const opponentScores = await fetchAndFormatPlayerData(
+      (opponentScoreData?.players_points ?? {}) as Record<string, number>,
+      (opponentScoreData?.starters ?? []) as string[],
+    );
+
+    const leagueName: string =
+      typeof leagueData.name === "string" ? leagueData.name : "-";
+
     return {
-      leagueName: leagueData.name,
-      score: myScoreData?.points,
+      leagueName,
+      score: myScoreData?.points as number,
+      scores,
       opponentScore: opponentScoreData?.points,
-      teamName: me?.metadata.team_name ?? me?.display_name,
-      opponentTeamName: opponent?.metadata.team_name ?? opponent?.display_name,
+      opponentScores,
+      teamName: (me?.metadata.team_name ?? me?.display_name) as string,
+      opponentTeamName: (opponent?.metadata.team_name ??
+        opponent?.display_name) as string,
     };
   } catch (e) {
     console.error(e);
