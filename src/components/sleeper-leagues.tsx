@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ScorecardSkeleton } from "@/components/scorecard";
 import { ScorecardWithModal } from "@/components/scorecard-with-sheet";
 import { H2 } from "@/components/ui/typography";
@@ -12,7 +13,7 @@ const ScorecardContainer = ({
   week: string;
 }) => {
   const { id: leagueId, ownerUserId: ownerId } = league.leagueInfo;
-  const { data, isRefetching } = api.main.getSleeperMatchupData.useQuery(
+  const { data /*, isRefetching*/ } = api.main.getSleeperMatchupData.useQuery(
     {
       leagueId,
       ownerId,
@@ -28,7 +29,6 @@ const ScorecardContainer = ({
   if (!data) return <ScorecardSkeleton />;
 
   const scores = data.scores.map((score) => ({
-    // ...score,
     full_name: `${score.first_name} ${score.last_name}`,
     id: score.id ?? "",
     points: score.points ?? 0,
@@ -36,7 +36,6 @@ const ScorecardContainer = ({
     team: score.team ?? "unknown",
   }));
   const opponentScores = data.opponentScores.map((score) => ({
-    // ...score,
     full_name: `${score.first_name} ${score.last_name}`,
     id: score.id ?? "",
     points: score.points ?? 0,
