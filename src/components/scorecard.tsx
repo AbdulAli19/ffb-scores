@@ -3,37 +3,65 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type ScorecardProps = {
-  leagueName: string;
+import { cn } from "@/lib/utils";
+
+type MatchupData = {
   score: number;
   opponentScore: number;
   teamName: string;
   opponentTeamName: string;
 };
 
+export type ScorecardProps = {
+  leagueName: string;
+  matchupData: MatchupData | undefined;
+  className?: string;
+};
+
+const ScorecardContent = ({
+  matchupData,
+}: {
+  matchupData: MatchupData | undefined;
+}) => {
+  if (!matchupData)
+    return (
+      <CardContent>
+        {/* Random height lowkeuy but it keeps the height consistent between this and the other flex items
+            TODO(abdul): use some flex or grid css here to ensure all the child items always have the same height
+            regardless of dynamic content
+         */}
+        <div className="h-[44px]">No matchup found</div>
+      </CardContent>
+    );
+
+  const { score, opponentScore, teamName, opponentTeamName } = matchupData;
+
+  return (
+    <CardContent className="flex items-center justify-between">
+      <div className="pr-2">
+        <p>{score}</p>
+        <p className="text-sm text-muted-foreground">{teamName}</p>
+      </div>
+      <div>vs</div>
+      <div className="pl-2">
+        <p>{opponentScore}</p>
+        <p className="text-sm text-muted-foreground">{opponentTeamName}</p>
+      </div>
+    </CardContent>
+  );
+};
+
 export const Scorecard = ({
   leagueName,
-  score,
-  opponentScore,
-  teamName,
-  opponentTeamName,
+  matchupData,
+  className,
 }: ScorecardProps) => {
   return (
-    <Card className="min-w-[300px] max-w-lg flex-1">
+    <Card className={cn("min-w-[300px] max-w-lg flex-1", className)}>
       <CardHeader className="text-center">
         <CardTitle className="text-base">{leagueName}</CardTitle>
       </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <div className="pr-2">
-          <p>{score}</p>
-          <p className="text-sm text-muted-foreground">{teamName}</p>
-        </div>
-        <div>vs</div>
-        <div className="pl-2">
-          <p>{opponentScore}</p>
-          <p className="text-sm text-muted-foreground">{opponentTeamName}</p>
-        </div>
-      </CardContent>
+      <ScorecardContent matchupData={matchupData} />
     </Card>
   );
 };

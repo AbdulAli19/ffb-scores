@@ -1,4 +1,6 @@
-import { Scorecard, ScorecardSkeleton } from "@/components/scorecard";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ScorecardSkeleton } from "@/components/scorecard";
+import { ScorecardWithModal } from "@/components/scorecard-with-sheet";
 import { H2 } from "@/components/ui/typography";
 import { api } from "@/utils/api";
 import type { PersistedSleeperLeague as SleeperLeagueConfig } from "@/utils/types";
@@ -11,7 +13,7 @@ const ScorecardContainer = ({
   week: string;
 }) => {
   const { id: leagueId, ownerUserId: ownerId } = league.leagueInfo;
-  const { data, isRefetching } = api.main.getSleeperMatchupData.useQuery(
+  const { data /*, isRefetching*/ } = api.main.getSleeperMatchupData.useQuery(
     {
       leagueId,
       ownerId,
@@ -26,7 +28,31 @@ const ScorecardContainer = ({
 
   if (!data) return <ScorecardSkeleton />;
 
-  return <Scorecard {...data} />;
+  const scores = data.scores.map((score) => ({
+    full_name: `${score.first_name} ${score.last_name}`,
+    id: score.id ?? "",
+    points: score.points ?? 0,
+    position: score.position ?? "unknown",
+    team: score.team ?? "unknown",
+  }));
+  const opponentScores = data.opponentScores.map((score) => ({
+    full_name: `${score.first_name} ${score.last_name}`,
+    id: score.id ?? "",
+    points: score.points ?? 0,
+    position: score.position ?? "unknown",
+    team: score.team ?? "unknown",
+  }));
+
+  const { leagueName, score, opponentScore, teamName, opponentTeamName } = data;
+
+  return (
+    <ScorecardWithModal
+      leagueName={leagueName}
+      matchupData={{ score, opponentScore, teamName, opponentTeamName }}
+      scores={scores}
+      opponentScores={opponentScores}
+    />
+  );
 };
 
 export const SleeperLeagues = ({
