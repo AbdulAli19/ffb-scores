@@ -273,6 +273,16 @@ const EspnScorecardContainer = ({
 
   if (!data) return <ScorecardSkeleton />;
 
+  if (!data.matchup || !data.teams)
+    return (
+      <ScorecardWithModal
+        leagueName={data.league.name}
+        matchupData={undefined}
+        scores={[]}
+        opponentScores={[]}
+      />
+    );
+
   const {
     score,
     opponentScore,
@@ -285,10 +295,12 @@ const EspnScorecardContainer = ({
 
   const scorecardProps = {
     leagueName: data.league.name,
-    teamName: team?.name ?? "-",
-    opponentTeamName: opponentTeam?.name ?? "-",
-    score,
-    opponentScore,
+    matchupData: {
+      teamName: team?.name ?? "-",
+      opponentTeamName: opponentTeam?.name ?? "-",
+      score,
+      opponentScore,
+    },
   };
 
   // TODO(abdul): update espn.d.ts so this stuff is typed automatically

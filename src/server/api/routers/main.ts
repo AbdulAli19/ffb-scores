@@ -77,12 +77,24 @@ const getMatchupData = async ({
   // to the rest of the matchup data
   const league = (await espnClient.getLeagueInfo({ seasonId })) as EspnLeague;
 
-  // TODO: return sane error to handle on client if no matchup
-
   if (!matchup) {
     console.error("no matchup found");
-    console.log({ seasonId, matchupPeriodId, scoringPeriodId, teamId });
-    throw new Error(`no matchup found for teamId: ${teamId}. matchup`);
+    console.log({
+      seasonId,
+      matchupPeriodId,
+      scoringPeriodId,
+      teamId,
+      leagueId,
+    });
+
+    // TODO: decouple requests and responses. rn it's coupled so i return undefined if no matchup is found instead of raising an error for the client to consume
+    return {
+      matchup: undefined,
+      teams: undefined,
+      league: {
+        name: league.name,
+      },
+    };
   }
 
   const {

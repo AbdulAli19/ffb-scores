@@ -27,9 +27,33 @@ const ScorecardContainer = ({
 
   if (!data) return <ScorecardSkeleton />;
 
-  const props = getProps(data);
+  const scores = data.scores.map((score) => ({
+    // ...score,
+    full_name: `${score.first_name} ${score.last_name}`,
+    id: score.id ?? "",
+    points: score.points ?? 0,
+    position: score.position ?? "unknown",
+    team: score.team ?? "unknown",
+  }));
+  const opponentScores = data.opponentScores.map((score) => ({
+    // ...score,
+    full_name: `${score.first_name} ${score.last_name}`,
+    id: score.id ?? "",
+    points: score.points ?? 0,
+    position: score.position ?? "unknown",
+    team: score.team ?? "unknown",
+  }));
 
-  return <ScorecardWithModal {...data} />;
+  const { leagueName, score, opponentScore, teamName, opponentTeamName } = data;
+
+  return (
+    <ScorecardWithModal
+      leagueName={leagueName}
+      matchupData={{ score, opponentScore, teamName, opponentTeamName }}
+      scores={scores}
+      opponentScores={opponentScores}
+    />
+  );
 };
 
 export const SleeperLeagues = ({
