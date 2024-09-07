@@ -303,6 +303,7 @@ const getSleeperMatchupData = async ({
       fetchMatchupData(),
       fetchUsersData(),
     ]);
+
     // every roster (rosterData) has an owner_id, use that to get roster_id
     const rosterId = rosterData.find((roster) => roster.owner_id === ownerId)
       ?.roster_id;
@@ -392,6 +393,9 @@ export const mainRouter = createTRPCRouter({
       return await getLeagueInfo({ ...input });
     }),
 
+  // this isn't really a mutation but i like the mutate api for
+  // calling a query manually. refetch on queries forces me to pass
+  // the query args when i call the hook and not when i call refetch itself
   getSleeperLeaguesForUser: publicProcedure
     .input(z.string())
     .mutation(async ({ input: username }) => {

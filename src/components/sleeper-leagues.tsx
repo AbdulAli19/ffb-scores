@@ -51,6 +51,7 @@ const ScorecardContainer = ({
       matchupData={{ score, opponentScore, teamName, opponentTeamName }}
       scores={scores}
       opponentScores={opponentScores}
+      week={week}
     />
   );
 };

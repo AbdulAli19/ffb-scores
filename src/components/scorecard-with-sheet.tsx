@@ -21,8 +21,8 @@ const PlayerList = ({ scores }: { scores: PlayerScore[] }) => {
     <div className="grid gap-4">
       {scores.map((score) => (
         <Card key={score.id}>
-          <div className="p-6">
-            <div className="flex items-center gap-2">
+          <div className="flex h-24 flex-col justify-between px-6 py-4">
+            <div>
               <div>{score.full_name ?? score.team}</div>
               <div className="text-xs text-slate-400">
                 {score.position} - {score.team}
@@ -39,10 +39,11 @@ const PlayerList = ({ scores }: { scores: PlayerScore[] }) => {
 type ScorecardWithModalProps = ScorecardProps & {
   scores: PlayerScore[];
   opponentScores: PlayerScore[];
+  week: string;
 };
 
 export function ScorecardWithModal(props: ScorecardWithModalProps) {
-  const { scores, opponentScores, ...scorecardProps } = props;
+  const { scores, opponentScores, week, ...scorecardProps } = props;
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -52,7 +53,7 @@ export function ScorecardWithModal(props: ScorecardWithModalProps) {
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-scroll lg:min-w-[640px]">
         <DialogHeader className="space-y-4">
-          <DialogTitle className="text-center">Week 13</DialogTitle>
+          <DialogTitle className="text-center">Week {week}</DialogTitle>
           <Scorecard {...scorecardProps} className="min-w-full max-w-full" />
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-4">

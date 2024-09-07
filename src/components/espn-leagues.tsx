@@ -280,6 +280,7 @@ const EspnScorecardContainer = ({
         matchupData={undefined}
         scores={[]}
         opponentScores={[]}
+        week={week}
       />
     );
 
@@ -312,6 +313,7 @@ const EspnScorecardContainer = ({
       {...scorecardProps}
       scores={scores}
       opponentScores={opponentScores}
+      week={week}
     />
   );
 };
