@@ -9,6 +9,7 @@ import { ZodError, z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { prisma } from "@/server/db";
+import { SEASON_ID } from "@/lib/constants";
 
 // TODO(abdul): use zod to validate the responses of all these responses
 const SleeperUserSchema = z.object({
@@ -21,8 +22,6 @@ const SleeperLeaguesSchema = z.array(
     league_id: z.string(),
   }),
 );
-
-const seasonId = 2023;
 
 type EspnLeague = {
   name: string;
@@ -59,7 +58,7 @@ const getMatchupData = async ({
   const matchupPeriodId = parseInt(week);
   const scoringPeriodId = parseInt(week);
   const boxscores = (await espnClient.getBoxscoreForWeek({
-    seasonId,
+    SEASON_ID,
     matchupPeriodId,
     scoringPeriodId,
   })) as EspnBoxscore[];
@@ -69,18 +68,18 @@ const getMatchupData = async ({
   );
 
   const teams = (await espnClient.getTeamsAtWeek({
-    seasonId,
+    SEASON_ID,
     scoringPeriodId,
   })) as EspnTeam[];
 
   // TODO(abdul): this can be an independent request, doesn't need to be coupled
   // to the rest of the matchup data
-  const league = (await espnClient.getLeagueInfo({ seasonId })) as EspnLeague;
+  const league = (await espnClient.getLeagueInfo({ SEASON_ID })) as EspnLeague;
 
   if (!matchup) {
     console.error("no matchup found");
     console.log({
-      seasonId,
+      SEASON_ID,
       matchupPeriodId,
       scoringPeriodId,
       teamId,
@@ -174,7 +173,9 @@ const getLeagueInfo = async ({
   if (cookies) espnClient.setCookies(cookies);
 
   try {
-    const league = (await espnClient.getLeagueInfo({ seasonId })) as EspnLeague;
+    const league = (await espnClient.getLeagueInfo({
+      SEASON_ID,
+    })) as EspnLeague;
     return league;
   } catch (e: unknown) {
     console.error(e);
@@ -202,7 +203,7 @@ const getUser = async (username: string) => {
 
 const getLeagues = async (userId: string) => {
   return await fetch(
-    `https://api.sleeper.app/v1/user/${userId}/leagues/nfl/${seasonId}`,
+    `https://api.sleeper.app/v1/user/${userId}/leagues/nfl/${SEASON_ID}`,
   )
     .then((res) => res.json())
     .then((res) => {
